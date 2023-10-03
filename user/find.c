@@ -4,39 +4,10 @@
 #include "kernel/fs.h"
 #include "kernel/fcntl.h"
 
-// char *
-// fmtname(char *path)
-// {
-//     static char buf[DIRSIZ + 1];
-//     char *p;
-
-//     // Find first character after last slash.
-//     for (p = path + strlen(path); p >= path && *p != '/'; p--)
-//         ;
-//     p++;
-
-//     // Return blank-padded name.
-//     if (strlen(p) >= DIRSIZ)
-//         return p;
-//     memmove(buf, p, strlen(p));
-//     memset(buf + strlen(p), ' ', DIRSIZ - strlen(p));
-//     return buf;
-// }
-
-void strconcat(char *dest, char *src)
-{
-    while (*dest)
-        dest++;
-    while ((*dest++ = *src++))
-        ;
-}
-
 void find_in_file(char *path, char *what)
 {
     struct stat st;
     struct dirent de;
-    char buf[512];
-    printf("path: %s\n", path);
 
     // open path
     int fd = open(path, 0);
@@ -54,10 +25,6 @@ void find_in_file(char *path, char *what)
         close(fd);
         exit(1);
     }
-
-    strcpy(buf, path);
-    // p = buf + strlen(buf);
-    printf("path i look in: %s\n", buf);
     while (read(fd, &de, sizeof(de)) == sizeof(de))
     {
         stat(de.name, &st);
@@ -73,24 +40,18 @@ void find_in_file(char *path, char *what)
         }
         else if (st.type == T_DIR)
         {
-            char new_path[512];
-            strcpy(new_path, buf);
-            char *p = new_path + strlen(new_path);
-            *p++ = '/';
-            strconcat(new_path, de.name);
-            // if p has a trailing slash, remove it
-
-            find_in_file(new_path, what);
+            char new_buf[100];
+            strcpy(new_buf, path);
+            char *new_p = new_buf + strlen(new_buf);
+            *new_p++ = '/';
+            memmove(new_p, de.name, DIRSIZ);
+            new_p[DIRSIZ] = 0;
+            find_in_file(new_buf, what);
         }
 
-        // printf("find: %s file: %d  \n", de.name, st.type);
         if (strcmp(de.name, what) == 0)
         {
-            printf("%s%s\n", buf, de.name);
-        }
-        else
-        {
-            // printf("find: %s what: %s \n", de.name, what);
+            printf("%s/%s\n", path, de.name);
         }
     }
 }
@@ -111,30 +72,3 @@ int main(int argc, char *argv[])
 
     exit(0);
 }
-
-// if (st.type == T_DIR)
-// {
-//     find_in_file(start_path, what);
-// }
-
-// printf("find: %s\n", start_path);
-// printf("find: %d\n", st.type);
-
-// // check if path is a file
-// if (st.type == T_DIR)
-// {
-//     strcpy(buf, start_path);
-//     p = buf + strlen(buf);
-//     *p++ = '/';
-//     while (read(fd, &de, sizeof(de)) == sizeof(de))
-//     {
-//         if (de.inum == 0)
-//             continue;
-//         memmove(p, de.name, DIRSIZ);
-//         p[DIRSIZ] = 0;
-//         if (strcmp(de.name, what) == 0)
-//         {
-//             printf("%s\n", buf);
-//         }
-//     }
-// }

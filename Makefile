@@ -190,6 +190,7 @@ UPROGS=\
 	$U/_zombie\
 	$U/_primes\
 	$U/_find\
+	$U/_trace\
 
 
 
