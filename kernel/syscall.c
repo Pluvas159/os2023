@@ -137,6 +137,36 @@ void syscall(void)
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
+    if (p->mask & (1 << num))
+    {
+      // make array of syscall names
+      char *syscall_names[] = {
+          "fork",
+          "exit",
+          "wait",
+          "pipe",
+          "read",
+          "kill",
+          "exec",
+          "fstat",
+          "chdir",
+          "dup",
+          "getpid",
+          "sbrk",
+          "sleep",
+          "uptime",
+          "open",
+          "write",
+          "mknod",
+          "unlink",
+          "link",
+          "mkdir",
+          "close",
+          "trace",
+      };
+      printf("%d %s: syscall %s -> %d\n",
+             p->pid, p->name, syscall_names[num - 1], p->trapframe->a0);
+    }
   }
   else
   {
