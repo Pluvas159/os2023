@@ -146,6 +146,10 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  p->alarmtickscounter = 0;
+  p->alarmhandler = (void (*)()) -1;
+  p->alarmActive = 0;
+
   return p;
 }
 
@@ -160,6 +164,9 @@ freeproc(struct proc *p)
   p->trapframe = 0;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
+  p->alarmtickscounter = 0;
+  p->alarmhandler = (void (*)()) -1;
+  p->alarmActive = 0;
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
