@@ -33,13 +33,15 @@ int
 cowhandler(pagetable_t pagetable, uint64 va)
 {
     char *mem;
+    if (pagetable == 0)
+      return -1;
     if (va >= MAXVA || va == 0)
       return -1;
     pte_t *pte = walk(pagetable, va, 0);
     if (pte == 0)
       return -1;
     // check the PTE
-    if ((*pte & PTE_RSW) == 0 || (*pte & PTE_U) == 0 || (*pte & PTE_V) == 0) {
+    if ((*pte & PTE_RSW) == 0 || (*pte & PTE_U) == 0 || (*pte & PTE_V) == 0 ) {
       return -1;
     }
     if ((mem = kalloc()) == 0) {
@@ -57,6 +59,10 @@ cowhandler(pagetable_t pagetable, uint64 va)
     *pte = (PA2PTE(mem) | flags | PTE_W );
     // set PTE_RSW to 0
     *pte &= ~PTE_RSW;
+    // if(mappages(pagetable, PGROUNDDOWN(va), PGSIZE, (uint64)mem, flags)) {
+    //   return -1;
+    // }
+
     return 0;
 }
 
@@ -98,7 +104,7 @@ usertrap(void)
     syscall();
   } else if (r_scause() == 15) {
     uint64 va = r_stval();
-    if (va >= p->sz ) {
+    if (va >= p->sz || va == 0) {
       p->killed = 1;
     }
     int ret = cowhandler(p->pagetable, va);
