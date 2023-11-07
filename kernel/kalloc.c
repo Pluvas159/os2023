@@ -10,6 +10,9 @@
 #include "defs.h"
 
 void freerange(void *pa_start, void *pa_end);
+// the reference count of physical memory page
+int useReference[PHYSTOP/PGSIZE];
+struct spinlock ref_count_lock;
 
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
@@ -51,6 +54,14 @@ kfree(void *pa)
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
+   acquire(&ref_count_lock);
+  // decrease the reference count, if use reference is not zero, then return
+  useReference[(uint64)pa/PGSIZE] -= 1;
+  int temp = useReference[(uint64)pa/PGSIZE];
+  release(&ref_count_lock);
+  if (temp > 0)
+    return;
+
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
 
@@ -72,8 +83,13 @@ kalloc(void)
 
   acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if(r) {
     kmem.freelist = r->next;
+    acquire(&ref_count_lock);
+    // initialization the ref count to 1
+    useReference[(uint64)r / PGSIZE] = 1;
+    release(&ref_count_lock);
+  }
   release(&kmem.lock);
 
   if(r)
