@@ -74,7 +74,7 @@ sys_sleep(void)
 int
 sys_pgaccess(void)
 {
-    uint64 va;
+  uint64 va;
   int pagenum;
   uint64 abitsaddr;
   argaddr(0, &va);
@@ -91,12 +91,12 @@ sys_pgaccess(void)
       maskbits = maskbits | (1L << i);
     }
     // clear PTE_A, set PTE_A bits zero
-    *pte = ((*pte&PTE_A) ^ *pte) ^ 0 ;
+    // *pte = ((*pte&PTE_A) ^ *pte) ^ 0 ;
+    *pte &= ~PTE_A;
   }
   if (copyout(proc->pagetable, abitsaddr, (char *)&maskbits, sizeof(maskbits)) < 0)
     panic("sys_pgacess copyout error");
 
-  return 0;
   return 0;
 }
 #endif
