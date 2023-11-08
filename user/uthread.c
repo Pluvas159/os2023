@@ -31,7 +31,6 @@ struct context {
 };
 
 
-
 struct thread {
   char       stack[STACK_SIZE]; /* the thread's stack */
   int        state;             /* FREE, RUNNING, RUNNABLE */
