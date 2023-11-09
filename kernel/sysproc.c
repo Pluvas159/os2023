@@ -87,8 +87,10 @@ void sys_pgaccess(void)
     if (pte == 0)
       continue;
     if (*pte & PTE_A)
+    {
       bitmask |= 1L << i;
-    *pte &= ~PTE_A;
+      *pte &= ~PTE_A;
+    }
   }
 
   if (copyout(myproc()->pagetable, userAddr, (char *)&bitmask, sizeof(bitmask)) < 0)
